@@ -1,0 +1,51 @@
+date,product,category,region,sales,quantity,profit,customer_type,payment_method,rating,is_returned
+2024-01-05,MacBook Pro,Electronics,North,2499.99,1,624.99,Business,Credit Card,4.8,false
+2024-01-07,iPhone 15,Electronics,West,1199.00,2,299.75,Individual,Digital Wallet,4.9,false
+2024-01-10,Office Chair,Furniture,South,349.99,3,87.50,Business,Bank Transfer,4.2,false
+2024-01-12,Standing Desk,Furniture,East,599.00,1,149.75,Individual,Credit Card,4.5,false
+2024-01-15,AirPods Pro,Electronics,North,249.00,5,62.25,Individual,Digital Wallet,4.7,false
+2024-01-18,Monitor 27",Electronics,West,449.99,2,112.50,Business,Credit Card,4.4,false
+2024-01-20,Keyboard,Accessories,South,149.99,8,37.50,Individual,Debit Card,4.1,true
+2024-01-22,Mouse,Accessories,East,79.99,10,20.00,Individual,Cash,4.3,false
+2024-01-25,Webcam HD,Electronics,North,129.99,4,32.50,Business,Credit Card,4.0,false
+2024-01-28,Desk Lamp,Furniture,West,59.99,6,15.00,Individual,Debit Card,3.9,false
+2024-02-01,iPad Air,Electronics,South,799.00,2,199.75,Education,Credit Card,4.8,false
+2024-02-03,Printer,Electronics,East,299.99,1,75.00,Business,Bank Transfer,3.8,true
+2024-02-06,Filing Cabinet,Furniture,North,189.99,2,47.50,Business,Credit Card,4.1,false
+2024-02-08,Headphones,Electronics,West,299.00,3,74.75,Individual,Digital Wallet,4.6,false
+2024-02-10,USB Hub,Accessories,South,49.99,12,12.50,Individual,Cash,4.2,false
+2024-02-12,Laptop Stand,Accessories,East,89.99,5,22.50,Business,Credit Card,4.4,false
+2024-02-15,Samsung TV,Electronics,North,1299.00,1,324.75,Individual,Credit Card,4.7,false
+2024-02-18,Bookshelf,Furniture,West,249.99,2,62.50,Individual,Debit Card,4.0,false
+2024-02-20,Tablet Stand,Accessories,South,39.99,8,10.00,Individual,Cash,3.7,true
+2024-02-22,Ergonomic Mouse,Accessories,East,99.99,6,25.00,Business,Credit Card,4.5,false
+2024-02-25,Smart Watch,Electronics,North,399.00,3,99.75,Individual,Digital Wallet,4.6,false
+2024-02-28,Coffee Table,Furniture,West,399.99,1,100.00,Individual,Credit Card,4.3,false
+2024-03-02,Wireless Charger,Accessories,South,44.99,15,11.25,Individual,Debit Card,4.1,false
+2024-03-05,Gaming Chair,Furniture,East,549.99,2,137.50,Individual,Credit Card,4.4,false
+2024-03-08,Bluetooth Speaker,Electronics,North,149.99,4,37.50,Individual,Digital Wallet,4.3,false
+2024-03-10,Monitor Arm,Accessories,West,129.99,3,32.50,Business,Credit Card,4.2,false
+2024-03-12,Desk Organizer,Accessories,South,29.99,20,7.50,Individual,Cash,3.8,false
+2024-03-15,MacBook Air,Electronics,East,1299.00,2,324.75,Education,Credit Card,4.9,false
+2024-03-18,Sofa,Furniture,North,899.99,1,225.00,Individual,Bank Transfer,4.5,false
+2024-03-20,Power Strip,Accessories,West,24.99,25,6.25,Business,Debit Card,4.0,false
+2024-03-22,Ring Light,Electronics,South,79.99,6,20.00,Individual,Digital Wallet,4.2,false
+2024-03-25,Office Desk,Furniture,East,449.99,2,112.50,Business,Credit Card,4.4,false
+2024-03-28,HDMI Cable,Accessories,North,19.99,30,5.00,Individual,Cash,4.1,false
+2024-03-30,Noise Canceling Headphones,Electronics,West,349.99,2,87.50,Business,Credit Card,4.8,false
+2024-04-02,Plant Pot,Furniture,South,34.99,10,8.75,Individual,Debit Card,3.9,false
+2024-04-05,External SSD,Electronics,East,179.99,4,45.00,Business,Credit Card,4.6,false
+2024-04-08,Desk Mat,Accessories,North,39.99,12,10.00,Individual,Cash,4.0,false
+2024-04-10,Smart Thermostat,Electronics,West,249.99,2,62.50,Individual,Digital Wallet,4.5,false
+2024-04-12,Bookends,Furniture,South,24.99,8,6.25,Individual,Debit Card,3.6,true
+2024-04-15,Wireless Keyboard,Accessories,East,119.99,5,30.00,Business,Credit Card,4.3,false
+2024-04-18,Camera,Electronics,North,799.99,1,200.00,Individual,Credit Card,4.7,false
+2024-04-20,Storage Bins,Furniture,West,44.99,6,11.25,Individual,Cash,4.1,false
+2024-04-22,Lightning Cable,Accessories,South,29.99,20,7.50,Individual,Debit Card,3.8,true
+2024-04-25,Drone,Electronics,East,599.99,1,150.00,Individual,Credit Card,4.4,false
+2024-04-28,Wall Art,Furniture,North,149.99,3,37.50,Individual,Digital Wallet,4.2,false
+2024-05-01,Screen Protector,Accessories,West,14.99,40,3.75,Individual,Cash,3.9,false
+2024-05-03,Smart Speaker,Electronics,South,99.99,5,25.00,Individual,Digital Wallet,4.5,false
+2024-05-06,Conference Table,Furniture,East,1299.99,1,325.00,Business,Bank Transfer,4.6,false
+2024-05-08,Phone Case,Accessories,North,34.99,15,8.75,Individual,Debit Card,4.0,false
+2024-05-10,VR Headset,Electronics,West,499.99,2,125.00,Individual,Credit Card,4.3,false
