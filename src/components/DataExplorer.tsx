@@ -105,14 +105,16 @@ export default function DataExplorer({ data, headers }: DataExplorerProps) {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border overflow-auto">
+        <CardContent className="px-3 sm:px-6">
+          {/* Mobile hint */}
+          <p className="text-xs text-slate-400 mb-2 sm:hidden">← Swipe to see more columns →</p>
+          <div className="rounded-md border overflow-x-auto -mx-1">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12 bg-slate-50">#</TableHead>
+                  <TableHead className="w-10 sm:w-12 bg-slate-50 text-xs sm:text-sm sticky left-0 z-10">#</TableHead>
                   {headers.map((header) => (
-                    <TableHead key={header} className="bg-slate-50 whitespace-nowrap">
+                    <TableHead key={header} className="bg-slate-50 whitespace-nowrap text-xs sm:text-sm min-w-[100px]">
                       {header}
                     </TableHead>
                   ))}
@@ -121,18 +123,18 @@ export default function DataExplorer({ data, headers }: DataExplorerProps) {
               <TableBody>
                 {currentData.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={headers.length + 1} className="text-center py-8 text-slate-500">
+                    <TableCell colSpan={headers.length + 1} className="text-center py-8 text-slate-500 text-sm">
                       No data found
                     </TableCell>
                   </TableRow>
                 ) : (
                   currentData.map((row, index) => (
                     <TableRow key={startIndex + index}>
-                      <TableCell className="text-slate-500">
+                      <TableCell className="text-slate-500 text-xs sm:text-sm sticky left-0 bg-white z-10">
                         {startIndex + index + 1}
                       </TableCell>
                       {headers.map((header) => (
-                        <TableCell key={header} className="whitespace-nowrap">
+                        <TableCell key={header} className="whitespace-nowrap text-xs sm:text-sm max-w-[200px] truncate">
                           {row[header] !== undefined && row[header] !== null
                             ? row[header].toString()
                             : '-'}
@@ -146,9 +148,9 @@ export default function DataExplorer({ data, headers }: DataExplorerProps) {
           </div>
 
           {/* Pagination Controls */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-600">Rows per page:</span>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 mt-4">
+            <div className="flex items-center gap-2 order-2 sm:order-1">
+              <span className="text-xs sm:text-sm text-slate-600">Rows:</span>
               <Select
                 value={rowsPerPage.toString()}
                 onValueChange={(value) => {
@@ -156,7 +158,7 @@ export default function DataExplorer({ data, headers }: DataExplorerProps) {
                   setCurrentPage(1);
                 }}
               >
-                <SelectTrigger className="w-20">
+                <SelectTrigger className="w-16 sm:w-20 h-8 sm:h-9 text-xs sm:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -168,28 +170,28 @@ export default function DataExplorer({ data, headers }: DataExplorerProps) {
               </Select>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-600">
-                Page {currentPage} of {totalPages || 1}
+            <div className="flex items-center gap-2 order-1 sm:order-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <span className="text-xs sm:text-sm text-slate-600 min-w-[80px] text-center">
+                {currentPage} / {totalPages || 1}
               </span>
-              <div className="flex gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="size-4" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages || totalPages === 0}
-                >
-                  <ChevronRight className="size-4" />
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 w-8 sm:h-9 sm:w-9 p-0"
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages || totalPages === 0}
+              >
+                <ChevronRight className="size-4" />
+              </Button>
             </div>
           </div>
         </CardContent>

@@ -207,22 +207,22 @@ export default function DataApp({ onSignOut, onGoHome, onBack, initialData, init
             </div>
           </div>
 
-          {/* Data summary bar */}
+          {/* Data summary bar - responsive */}
           {data && fileName && (
-            <div className="mt-3 flex items-center justify-center gap-4 py-2 px-4 bg-blue-50 rounded-lg border border-blue-100">
-              <div className="flex items-center gap-2 text-sm text-blue-700">
-                <FileSpreadsheet className="size-4" />
-                <span className="font-medium truncate max-w-[150px] sm:max-w-none">{fileName}</span>
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:gap-4 py-2 px-3 sm:px-4 bg-blue-50 rounded-lg border border-blue-100">
+              <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-blue-700">
+                <FileSpreadsheet className="size-3.5 sm:size-4" />
+                <span className="font-medium truncate max-w-[100px] sm:max-w-[150px] md:max-w-none">{fileName}</span>
               </div>
-              <div className="h-4 w-px bg-blue-200" />
-              <div className="flex items-center gap-2 text-sm text-blue-600">
-                <Table2 className="size-4" />
+              <div className="hidden sm:block h-4 w-px bg-blue-200" />
+              <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-blue-600">
+                <Table2 className="size-3.5 sm:size-4" />
                 <span>{data.rows.length.toLocaleString()} rows</span>
               </div>
-              <div className="h-4 w-px bg-blue-200" />
-              <div className="flex items-center gap-2 text-sm text-blue-600">
-                <Database className="size-4" />
-                <span>{data.headers.length} columns</span>
+              <div className="hidden sm:block h-4 w-px bg-blue-200" />
+              <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-blue-600">
+                <Database className="size-3.5 sm:size-4" />
+                <span>{data.headers.length} cols</span>
               </div>
             </div>
           )}
@@ -231,34 +231,34 @@ export default function DataApp({ onSignOut, onGoHome, onBack, initialData, init
 
       {/* Main Content */}
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4 h-auto">
-            <TabsTrigger value="explore" disabled={!data} className="gap-1 sm:gap-2 flex-col sm:flex-row py-2 sm:py-3">
-              <Database className="size-4" />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
+          <TabsList className="grid w-full grid-cols-4 h-auto p-1">
+            <TabsTrigger value="explore" disabled={!data} className="gap-1 flex-col py-2 px-1 sm:px-3 sm:py-3 sm:flex-row sm:gap-2">
+              <Database className="size-4 sm:size-5" />
               <div className="flex items-center">
-                <span className="text-xs sm:text-sm">Explore</span>
-                <HelpTooltip content={helpContent.explore} variant="prominent" />
+                <span className="text-[10px] sm:text-sm">Explore</span>
+                <span className="hidden sm:inline-flex"><HelpTooltip content={helpContent.explore} variant="prominent" /></span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="manipulate" disabled={!data} className="gap-1 sm:gap-2 flex-col sm:flex-row py-2 sm:py-3">
-              <Edit3 className="size-4" />
+            <TabsTrigger value="manipulate" disabled={!data} className="gap-1 flex-col py-2 px-1 sm:px-3 sm:py-3 sm:flex-row sm:gap-2">
+              <Edit3 className="size-4 sm:size-5" />
               <div className="flex items-center">
-                <span className="text-xs sm:text-sm">Manipulate</span>
-                <HelpTooltip content={helpContent.manipulate} variant="prominent" />
+                <span className="text-[10px] sm:text-sm">Filter</span>
+                <span className="hidden sm:inline-flex"><HelpTooltip content={helpContent.manipulate} variant="prominent" /></span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="augment" disabled={!data} className="gap-1 sm:gap-2 flex-col sm:flex-row py-2 sm:py-3">
-              <PlusCircle className="size-4" />
+            <TabsTrigger value="augment" disabled={!data} className="gap-1 flex-col py-2 px-1 sm:px-3 sm:py-3 sm:flex-row sm:gap-2">
+              <PlusCircle className="size-4 sm:size-5" />
               <div className="flex items-center">
-                <span className="text-xs sm:text-sm">Augment</span>
-                <HelpTooltip content={helpContent.augment} variant="prominent" />
+                <span className="text-[10px] sm:text-sm">Add</span>
+                <span className="hidden sm:inline-flex"><HelpTooltip content={helpContent.augment} variant="prominent" /></span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="visualize" disabled={!data} className="gap-1 sm:gap-2 flex-col sm:flex-row py-2 sm:py-3">
-              <BarChart3 className="size-4" />
+            <TabsTrigger value="visualize" disabled={!data} className="gap-1 flex-col py-2 px-1 sm:px-3 sm:py-3 sm:flex-row sm:gap-2">
+              <BarChart3 className="size-4 sm:size-5" />
               <div className="flex items-center">
-                <span className="text-xs sm:text-sm">Visualize</span>
-                <HelpTooltip content={helpContent.visualize} variant="prominent" />
+                <span className="text-[10px] sm:text-sm">Chart</span>
+                <span className="hidden sm:inline-flex"><HelpTooltip content={helpContent.visualize} variant="prominent" /></span>
               </div>
             </TabsTrigger>
           </TabsList>

@@ -121,63 +121,63 @@ export default function DataManipulation({ data, headers, onDataChange }: DataMa
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Controls */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
         {/* Filtering */}
         <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+          <CardHeader className="pb-3 sm:pb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <CardTitle className="flex items-center">
+                <CardTitle className="flex items-center text-base sm:text-lg">
                   Filters
                   <HelpTooltip content={helpTexts.addFilter} />
                 </CardTitle>
-                <CardDescription>Add conditions to filter your data</CardDescription>
+                <CardDescription className="text-xs sm:text-sm">Add conditions to filter your data</CardDescription>
               </div>
-              <Button onClick={addFilter} size="sm">
+              <Button onClick={addFilter} size="sm" className="w-full sm:w-auto">
                 <Filter className="mr-2 size-4" />
                 Add Filter
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-0">
             {filters.length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-4">No filters applied</p>
+              <p className="text-xs sm:text-sm text-slate-500 text-center py-4">No filters applied</p>
             ) : (
               filters.map((filter) => (
-                <div key={filter.id} className="flex gap-2 items-start">
+                <div key={filter.id} className="flex gap-2 items-start p-3 bg-slate-50 rounded-lg">
                   <div className="flex-1 space-y-2">
                     <Select
                       value={filter.column}
                       onValueChange={(value) => updateFilter(filter.id, { column: value })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="text-xs sm:text-sm">
                         <SelectValue placeholder="Select column" />
                       </SelectTrigger>
                       <SelectContent>
                         {headers.map((header) => (
-                          <SelectItem key={header} value={header}>
+                          <SelectItem key={header} value={header} className="text-xs sm:text-sm">
                             {header}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Select
                         value={filter.operator}
                         onValueChange={(value: any) => updateFilter(filter.id, { operator: value })}
                       >
-                        <SelectTrigger className="w-32">
+                        <SelectTrigger className="w-full sm:w-32 text-xs sm:text-sm">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="equals">Equals</SelectItem>
-                          <SelectItem value="contains">Contains</SelectItem>
-                          <SelectItem value="greater">Greater than</SelectItem>
-                          <SelectItem value="less">Less than</SelectItem>
-                          <SelectItem value="notEmpty">Not empty</SelectItem>
-                          <SelectItem value="isEmpty">Is empty</SelectItem>
+                          <SelectItem value="equals" className="text-xs sm:text-sm">Equals</SelectItem>
+                          <SelectItem value="contains" className="text-xs sm:text-sm">Contains</SelectItem>
+                          <SelectItem value="greater" className="text-xs sm:text-sm">Greater than</SelectItem>
+                          <SelectItem value="less" className="text-xs sm:text-sm">Less than</SelectItem>
+                          <SelectItem value="notEmpty" className="text-xs sm:text-sm">Not empty</SelectItem>
+                          <SelectItem value="isEmpty" className="text-xs sm:text-sm">Is empty</SelectItem>
                         </SelectContent>
                       </Select>
                       {!['notEmpty', 'isEmpty'].includes(filter.operator) && (
@@ -185,6 +185,7 @@ export default function DataManipulation({ data, headers, onDataChange }: DataMa
                           placeholder="Value"
                           value={filter.value}
                           onChange={(e) => updateFilter(filter.id, { value: e.target.value })}
+                          className="text-xs sm:text-sm"
                         />
                       )}
                     </div>
@@ -193,7 +194,7 @@ export default function DataManipulation({ data, headers, onDataChange }: DataMa
                     variant="ghost"
                     size="icon"
                     onClick={() => removeFilter(filter.id)}
-                    className="mt-1"
+                    className="mt-1 h-8 w-8 flex-shrink-0"
                   >
                     <Trash2 className="size-4 text-red-500" />
                   </Button>
@@ -205,22 +206,22 @@ export default function DataManipulation({ data, headers, onDataChange }: DataMa
 
         {/* Sorting */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
+          <CardHeader className="pb-3 sm:pb-6">
+            <CardTitle className="flex items-center text-base sm:text-lg">
               Sorting
               <HelpTooltip content={helpTexts.sorting} />
             </CardTitle>
-            <CardDescription>Sort your data by column</CardDescription>
+            <CardDescription className="text-xs sm:text-sm">Sort your data by column</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-0">
             <Select value={sortColumn} onValueChange={setSortColumn}>
-              <SelectTrigger>
+              <SelectTrigger className="text-xs sm:text-sm">
                 <SelectValue placeholder="Select column to sort" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">None</SelectItem>
+                <SelectItem value="none" className="text-xs sm:text-sm">None</SelectItem>
                 {headers.map((header) => (
-                  <SelectItem key={header} value={header}>
+                  <SelectItem key={header} value={header} className="text-xs sm:text-sm">
                     {header}
                   </SelectItem>
                 ))}
@@ -232,27 +233,31 @@ export default function DataManipulation({ data, headers, onDataChange }: DataMa
                 <Button
                   variant={sortDirection === 'asc' ? 'default' : 'outline'}
                   onClick={() => setSortDirection('asc')}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm"
+                  size="sm"
                 >
-                  <SortAsc className="mr-2 size-4" />
-                  Ascending
+                  <SortAsc className="mr-1 sm:mr-2 size-3.5 sm:size-4" />
+                  <span className="hidden xs:inline">Ascending</span>
+                  <span className="xs:hidden">Asc</span>
                 </Button>
                 <Button
                   variant={sortDirection === 'desc' ? 'default' : 'outline'}
                   onClick={() => setSortDirection('desc')}
-                  className="flex-1"
+                  className="flex-1 text-xs sm:text-sm"
+                  size="sm"
                 >
-                  <SortDesc className="mr-2 size-4" />
-                  Descending
+                  <SortDesc className="mr-1 sm:mr-2 size-3.5 sm:size-4" />
+                  <span className="hidden xs:inline">Descending</span>
+                  <span className="xs:hidden">Desc</span>
                 </Button>
               </div>
             )}
 
             <div className="pt-4 border-t space-y-2">
-              <Button onClick={applyChanges} className="w-full" variant="default">
+              <Button onClick={applyChanges} className="w-full text-sm" variant="default">
                 Apply Changes
               </Button>
-              <Button onClick={exportData} className="w-full" variant="outline">
+              <Button onClick={exportData} className="w-full text-xs sm:text-sm" variant="outline">
                 <Download className="mr-2 size-4" />
                 Export Filtered Data
               </Button>
@@ -263,20 +268,21 @@ export default function DataManipulation({ data, headers, onDataChange }: DataMa
 
       {/* Preview */}
       <Card>
-        <CardHeader>
-          <CardTitle>Preview</CardTitle>
-          <CardDescription>
+        <CardHeader className="pb-3 sm:pb-6">
+          <CardTitle className="text-base sm:text-lg">Preview</CardTitle>
+          <CardDescription className="text-xs sm:text-sm">
             Showing {processedData.length} of {data.length} rows
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-md border overflow-auto max-h-96">
+        <CardContent className="px-3 sm:px-6">
+          <p className="text-xs text-slate-400 mb-2 sm:hidden">← Swipe to see more columns →</p>
+          <div className="rounded-md border overflow-x-auto max-h-80 sm:max-h-96 -mx-1">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="bg-slate-50">#</TableHead>
+                  <TableHead className="bg-slate-50 text-xs sm:text-sm sticky left-0 z-10">#</TableHead>
                   {headers.map((header) => (
-                    <TableHead key={header} className="bg-slate-50 whitespace-nowrap">
+                    <TableHead key={header} className="bg-slate-50 whitespace-nowrap text-xs sm:text-sm min-w-[80px]">
                       {header}
                     </TableHead>
                   ))}
@@ -285,9 +291,9 @@ export default function DataManipulation({ data, headers, onDataChange }: DataMa
               <TableBody>
                 {processedData.slice(0, 10).map((row, index) => (
                   <TableRow key={index}>
-                    <TableCell className="text-slate-500">{index + 1}</TableCell>
+                    <TableCell className="text-slate-500 text-xs sm:text-sm sticky left-0 bg-white z-10">{index + 1}</TableCell>
                     {headers.map((header) => (
-                      <TableCell key={header} className="whitespace-nowrap">
+                      <TableCell key={header} className="whitespace-nowrap text-xs sm:text-sm max-w-[150px] truncate">
                         {row[header] !== undefined && row[header] !== null
                           ? row[header].toString()
                           : '-'}
@@ -299,7 +305,7 @@ export default function DataManipulation({ data, headers, onDataChange }: DataMa
             </Table>
           </div>
           {processedData.length > 10 && (
-            <p className="text-sm text-slate-500 text-center mt-4">
+            <p className="text-xs sm:text-sm text-slate-500 text-center mt-3 sm:mt-4">
               Showing first 10 rows. Apply changes to see full results in Explore tab.
             </p>
           )}

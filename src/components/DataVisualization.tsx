@@ -210,38 +210,38 @@ export default function DataVisualization({ data, headers }: DataVisualizationPr
               </div>
             </div>
 
-            <TabsContent value="bar" className="mt-6">
-              <div className="h-96 w-full min-h-[24rem]">
+            <TabsContent value="bar" className="mt-4 sm:mt-6">
+              <div className="h-64 sm:h-80 md:h-96 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                    <YAxis tick={{ fontSize: 10 }} />
                     <Tooltip />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Bar dataKey="value" fill="#0088FE" name={yAxis} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             </TabsContent>
 
-            <TabsContent value="line" className="mt-6">
-              <div className="h-96 w-full min-h-[24rem]">
+            <TabsContent value="line" className="mt-4 sm:mt-6">
+              <div className="h-64 sm:h-80 md:h-96 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
+                    <XAxis dataKey="name" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
+                    <YAxis tick={{ fontSize: 10 }} />
                     <Tooltip />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Line type="monotone" dataKey="value" stroke="#00C49F" name={yAxis} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </TabsContent>
 
-            <TabsContent value="pie" className="mt-6">
-              <div className="h-96 w-full min-h-[24rem]">
+            <TabsContent value="pie" className="mt-4 sm:mt-6">
+              <div className="h-64 sm:h-80 md:h-96 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
@@ -249,8 +249,8 @@ export default function DataVisualization({ data, headers }: DataVisualizationPr
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={120}
+                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                      outerRadius="70%"
                       fill="#8884d8"
                       dataKey="value"
                     >
@@ -259,20 +259,21 @@ export default function DataVisualization({ data, headers }: DataVisualizationPr
                       ))}
                     </Pie>
                     <Tooltip />
+                    <Legend wrapperStyle={{ fontSize: '11px' }} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
             </TabsContent>
 
-            <TabsContent value="scatter" className="mt-6">
-              <div className="h-96 w-full min-h-[24rem]">
+            <TabsContent value="scatter" className="mt-4 sm:mt-6">
+              <div className="h-64 sm:h-80 md:h-96 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <ScatterChart>
                     <CartesianGrid />
-                    <XAxis dataKey="x" name={xAxis} />
-                    <YAxis dataKey="y" name={yAxis} />
+                    <XAxis dataKey="x" name={xAxis} tick={{ fontSize: 10 }} />
+                    <YAxis dataKey="y" name={yAxis} tick={{ fontSize: 10 }} />
                     <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-                    <Legend />
+                    <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Scatter name={`${xAxis} vs ${yAxis}`} data={chartData} fill="#8884d8" />
                   </ScatterChart>
                 </ResponsiveContainer>
