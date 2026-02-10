@@ -30,25 +30,12 @@ export default function SignInScreen({ onSignIn }: SignInScreenProps) {
     }
 
     setIsLoading(true);
-    try {
-      const response = await authAPI.signIn({
-        email: signInEmail,
-        password: signInPassword,
-      });
-
-      if (response.success) {
-        toast.success('Signed in successfully!');
-        setTimeout(() => {
-          onSignIn();
-        }, 500);
-      } else {
-        toast.error(response.error || 'Sign in failed');
-      }
-    } catch (error) {
-      toast.error('An error occurred. Please try again.');
-    } finally {
+    // Demo mode - authentication is not connected, proceed to app
+    toast.success('Welcome to the demo! Full authentication coming soon.');
+    setTimeout(() => {
+      onSignIn();
       setIsLoading(false);
-    }
+    }, 500);
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -70,46 +57,22 @@ export default function SignInScreen({ onSignIn }: SignInScreenProps) {
     }
 
     setIsLoading(true);
-    try {
-      const response = await authAPI.signUp({
-        name: signUpName,
-        email: signUpEmail,
-        password: signUpPassword,
-      });
-
-      if (response.success) {
-        toast.success('Account created successfully!');
-        setTimeout(() => {
-          onSignIn();
-        }, 500);
-      } else {
-        toast.error(response.error || 'Registration failed');
-      }
-    } catch (error) {
-      toast.error('An error occurred. Please try again.');
-    } finally {
+    // Demo mode - registration is not connected, proceed to app
+    toast.success('Welcome to the demo! Full registration coming soon.');
+    setTimeout(() => {
+      onSignIn();
       setIsLoading(false);
-    }
+    }, 500);
   };
 
   const handleGuestAccess = async () => {
     setIsLoading(true);
-    try {
-      const response = await authAPI.guestAccess();
-
-      if (response.success) {
-        toast.success('Welcome! Sample data has been loaded for you.');
-        setTimeout(() => {
-          onSignIn();
-        }, 500);
-      } else {
-        toast.error(response.error || 'Guest access failed');
-      }
-    } catch (error) {
-      toast.error('An error occurred. Please try again.');
-    } finally {
+    // Demo mode - skip backend, go directly to app
+    toast.success('Welcome! You can upload your own CSV or try the sample data.');
+    setTimeout(() => {
+      onSignIn();
       setIsLoading(false);
-    }
+    }, 500);
   };
 
   return (
