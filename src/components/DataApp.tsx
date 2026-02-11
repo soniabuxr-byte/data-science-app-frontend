@@ -290,7 +290,7 @@ export default function DataApp({ onSignOut, onGoHome, onBack, initialData, init
                 <span className="hidden sm:inline-flex"><HelpTooltip content={helpContent.visualize} variant="prominent" /></span>
               </div>
             </TabsTrigger>
-            <TabsTrigger value="ai" disabled={!data || !tableName} className="gap-1 flex-col py-2 px-1 sm:px-3 sm:py-3 sm:flex-row sm:gap-2">
+            <TabsTrigger value="ai" disabled={!data} className="gap-1 flex-col py-2 px-1 sm:px-3 sm:py-3 sm:flex-row sm:gap-2">
               <Sparkles className="size-4 sm:size-5" />
               <div className="flex items-center">
                 <span className="text-[10px] sm:text-sm">AI</span>
@@ -330,7 +330,7 @@ export default function DataApp({ onSignOut, onGoHome, onBack, initialData, init
           </TabsContent>
 
           <TabsContent value="ai">
-            {data && tableName && (
+            {data && (
               <AIQueryPanel
                 data={data.rows}
                 headers={data.headers}

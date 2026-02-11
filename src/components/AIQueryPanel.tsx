@@ -10,7 +10,7 @@ import { aiAPI, analysisAPI } from '../services/api';
 interface AIQueryPanelProps {
   data: any[];
   headers: string[];
-  tableName: string;
+  tableName?: string; // Optional - AI features need backend connection
   onDataChange?: (newData: any[]) => void;
 }
 
@@ -115,6 +115,22 @@ export default function AIQueryPanel({ data, headers, tableName, onDataChange }:
     setQuery('');
     setIsLoading(true);
 
+    // Check if backend is connected
+    if (!tableName) {
+      // Provide helpful local analysis instead
+      const localAnswer = generateLocalAnswer(questionToAsk, data, headers);
+      const assistantMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: localAnswer,
+        timestamp: new Date(),
+        insights: generateLocalInsights(data, headers),
+      };
+      setChatHistory(prev => [...prev, assistantMessage]);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const response = await aiAPI.query(tableName, questionToAsk);
       
@@ -139,13 +155,16 @@ export default function AIQueryPanel({ data, headers, tableName, onDataChange }:
         setChatHistory(prev => [...prev, errorMessage]);
       }
     } catch (error) {
-      const errorMessage: ChatMessage = {
+      // Fall back to local analysis
+      const localAnswer = generateLocalAnswer(questionToAsk, data, headers);
+      const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: 'I\'m having trouble connecting to the AI service. Please make sure the backend is running and try again.',
+        content: localAnswer,
         timestamp: new Date(),
+        insights: generateLocalInsights(data, headers),
       };
-      setChatHistory(prev => [...prev, errorMessage]);
+      setChatHistory(prev => [...prev, assistantMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -168,19 +187,73 @@ export default function AIQueryPanel({ data, headers, tableName, onDataChange }:
     setIsAnalyzing(true);
     setColumnAnalysis(null);
 
-    try {
-      const response = await analysisAPI.getColumnAnalysis(tableName, column);
-      
-      if (response.success && response.data) {
-        setColumnAnalysis(response.data);
-      } else {
-        toast.error('Analysis failed');
+    // If backend is available, try to use it
+    if (tableName) {
+      try {
+        const response = await analysisAPI.getColumnAnalysis(tableName, column);
+        
+        if (response.success && response.data) {
+          setColumnAnalysis(response.data);
+          setIsAnalyzing(false);
+          return;
+        }
+      } catch (error) {
+        // Fall through to local analysis
       }
-    } catch (error) {
-      toast.error('Failed to analyze column');
-    } finally {
-      setIsAnalyzing(false);
     }
+
+    // Local analysis fallback
+    const values = data.map(row => row[column]);
+    const numericValues = values.map(v => parseFloat(v)).filter(v => !isNaN(v));
+    const isNumeric = numericValues.length > values.length * 0.5;
+    
+    const analysis: any = {
+      column,
+      type: isNumeric ? 'numeric' : 'text',
+      statistics: {},
+      insights: []
+    };
+
+    if (isNumeric && numericValues.length > 0) {
+      const sum = numericValues.reduce((a, b) => a + b, 0);
+      const mean = sum / numericValues.length;
+      const sorted = [...numericValues].sort((a, b) => a - b);
+      
+      analysis.statistics = {
+        count: numericValues.length,
+        mean: mean.toFixed(2),
+        min: Math.min(...numericValues).toFixed(2),
+        max: Math.max(...numericValues).toFixed(2),
+        sum: sum.toFixed(2),
+        median: sorted[Math.floor(sorted.length / 2)].toFixed(2)
+      };
+      analysis.insights = [
+        `Range: ${(Math.max(...numericValues) - Math.min(...numericValues)).toFixed(2)}`,
+        numericValues.length < values.length ? `${values.length - numericValues.length} non-numeric values found` : 'All values are numeric'
+      ];
+    } else {
+      const uniqueValues = new Set(values);
+      const valueCounts = new Map<string, number>();
+      values.forEach(v => {
+        const key = String(v);
+        valueCounts.set(key, (valueCounts.get(key) || 0) + 1);
+      });
+      const mostCommon = [...valueCounts.entries()].sort((a, b) => b[1] - a[1])[0];
+      
+      analysis.statistics = {
+        count: values.length,
+        unique: uniqueValues.size,
+        most_common: mostCommon ? mostCommon[0] : 'N/A',
+        most_common_count: mostCommon ? mostCommon[1] : 0
+      };
+      analysis.insights = [
+        `${uniqueValues.size} unique values out of ${values.length} total`,
+        mostCommon ? `"${mostCommon[0]}" appears ${mostCommon[1]} times` : ''
+      ].filter(Boolean);
+    }
+
+    setColumnAnalysis(analysis);
+    setIsAnalyzing(false);
   };
 
   // Generate follow-up questions based on last response
@@ -572,4 +645,116 @@ function generateSuggestedQuestions(data: any[], headers: string[]): string[] {
   questions.push('What are the key insights?');
   
   return questions;
+}
+
+// Generate local answer when backend isn't available
+function generateLocalAnswer(question: string, data: any[], headers: string[]): string {
+  const q = question.toLowerCase();
+  const numericCols = headers.filter(h => data.some(row => !isNaN(parseFloat(row[h]))));
+  
+  // Handle common questions locally
+  if (q.includes('average') || q.includes('mean')) {
+    const results: string[] = [];
+    numericCols.forEach(col => {
+      const values = data.map(row => parseFloat(row[col])).filter(v => !isNaN(v));
+      if (values.length > 0) {
+        const avg = values.reduce((a, b) => a + b, 0) / values.length;
+        results.push(`${col}: ${avg.toFixed(2)}`);
+      }
+    });
+    if (results.length > 0) {
+      return `Here are the averages for your numeric columns:\n\n${results.join('\n')}`;
+    }
+  }
+  
+  if (q.includes('sum') || q.includes('total')) {
+    const results: string[] = [];
+    numericCols.forEach(col => {
+      const values = data.map(row => parseFloat(row[col])).filter(v => !isNaN(v));
+      if (values.length > 0) {
+        const sum = values.reduce((a, b) => a + b, 0);
+        results.push(`${col}: ${sum.toLocaleString()}`);
+      }
+    });
+    if (results.length > 0) {
+      return `Here are the totals for your numeric columns:\n\n${results.join('\n')}`;
+    }
+  }
+  
+  if (q.includes('max') || q.includes('highest') || q.includes('top')) {
+    const results: string[] = [];
+    numericCols.forEach(col => {
+      const values = data.map(row => parseFloat(row[col])).filter(v => !isNaN(v));
+      if (values.length > 0) {
+        const max = Math.max(...values);
+        results.push(`${col}: ${max.toLocaleString()}`);
+      }
+    });
+    if (results.length > 0) {
+      return `Here are the maximum values:\n\n${results.join('\n')}`;
+    }
+  }
+  
+  if (q.includes('min') || q.includes('lowest')) {
+    const results: string[] = [];
+    numericCols.forEach(col => {
+      const values = data.map(row => parseFloat(row[col])).filter(v => !isNaN(v));
+      if (values.length > 0) {
+        const min = Math.min(...values);
+        results.push(`${col}: ${min.toLocaleString()}`);
+      }
+    });
+    if (results.length > 0) {
+      return `Here are the minimum values:\n\n${results.join('\n')}`;
+    }
+  }
+  
+  if (q.includes('summarize') || q.includes('summary') || q.includes('overview')) {
+    return `Dataset Summary:\n\n• Total rows: ${data.length.toLocaleString()}\n• Total columns: ${headers.length}\n• Numeric columns: ${numericCols.length}\n• Text columns: ${headers.length - numericCols.length}\n\nUse the Explore tab to browse your data, or ask me about averages, totals, or specific columns!`;
+  }
+  
+  if (q.includes('unique') || q.includes('distinct')) {
+    const results: string[] = [];
+    headers.forEach(col => {
+      const uniqueValues = new Set(data.map(row => row[col]));
+      results.push(`${col}: ${uniqueValues.size} unique values`);
+    });
+    return `Unique values per column:\n\n${results.join('\n')}`;
+  }
+  
+  // Default response
+  return `I analyzed your dataset with ${data.length} rows and ${headers.length} columns.\n\nTry asking me:\n• "What is the average sales?"\n• "Show me the total by category"\n• "Summarize this dataset"\n• "How many unique products are there?"\n\nFor advanced AI queries, upload your CSV using the upload button to enable full AI features!`;
+}
+
+// Generate local insights
+function generateLocalInsights(data: any[], headers: string[]): string[] {
+  const insights: string[] = [];
+  const numericCols = headers.filter(h => data.some(row => !isNaN(parseFloat(row[h]))));
+  
+  insights.push(`Your dataset has ${data.length} rows and ${headers.length} columns`);
+  
+  if (numericCols.length > 0) {
+    const col = numericCols[0];
+    const values = data.map(row => parseFloat(row[col])).filter(v => !isNaN(v));
+    if (values.length > 0) {
+      const avg = values.reduce((a, b) => a + b, 0) / values.length;
+      insights.push(`Average ${col}: ${avg.toFixed(2)}`);
+    }
+  }
+  
+  // Find column with most unique values
+  let maxUnique = 0;
+  let maxUniqueCol = '';
+  headers.forEach(col => {
+    const unique = new Set(data.map(row => row[col])).size;
+    if (unique > maxUnique) {
+      maxUnique = unique;
+      maxUniqueCol = col;
+    }
+  });
+  if (maxUniqueCol) {
+    insights.push(`"${maxUniqueCol}" has the most variety (${maxUnique} unique values)`);
+  }
+  
+  return insights;
 }
