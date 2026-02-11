@@ -6,12 +6,19 @@ import { Toaster } from './components/ui/sonner';
 
 type AppScreen = 'signin' | 'landing' | 'app';
 
+interface UploadedData {
+  data: any[];
+  headers: string[];
+  fileName: string;
+  tableName?: string; // Backend table name for AI features
+}
+
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>('signin');
-  const [uploadedData, setUploadedData] = useState<{ data: any[], headers: string[], fileName: string } | null>(null);
+  const [uploadedData, setUploadedData] = useState<UploadedData | null>(null);
 
-  const handleGetStarted = (data: any[], headers: string[], fileName: string) => {
-    setUploadedData({ data, headers, fileName });
+  const handleGetStarted = (data: any[], headers: string[], fileName: string, tableName?: string) => {
+    setUploadedData({ data, headers, fileName, tableName });
     setCurrentScreen('app');
   };
 
@@ -34,6 +41,7 @@ export default function App() {
           initialData={uploadedData?.data}
           initialHeaders={uploadedData?.headers}
           initialFileName={uploadedData?.fileName}
+          initialTableName={uploadedData?.tableName}
         />
       )}
       <Toaster position="top-right" />

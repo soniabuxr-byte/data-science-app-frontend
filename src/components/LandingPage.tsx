@@ -1,12 +1,13 @@
-import { Upload, Database, Edit3, PlusCircle, BarChart3, ArrowRight, ArrowLeft, FileSpreadsheet, Globe, Loader2 } from 'lucide-react';
+import { Upload, Database, Edit3, PlusCircle, BarChart3, ArrowRight, ArrowLeft, FileSpreadsheet, Globe, Loader2, Sparkles } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { useRef, useState } from 'react';
 import Papa from 'papaparse';
 import { toast } from 'sonner';
+import { tableAPI } from '../services/api';
 
 interface LandingPageProps {
-  onGetStarted: (data: any[], headers: string[], fileName: string) => void;
+  onGetStarted: (data: any[], headers: string[], fileName: string, tableName?: string) => void;
   onBack?: () => void;
 }
 
@@ -43,8 +44,8 @@ export default function LandingPage({ onGetStarted, onBack }: LandingPageProps) 
     }
   };
 
-  // Process uploaded file
-  const processFile = (file: File) => {
+  // Process uploaded file - uploads to backend for AI features
+  const processFile = async (file: File) => {
     if (!file.name.endsWith('.csv')) {
       toast.error('Please upload a CSV file');
       return;
@@ -56,8 +57,9 @@ export default function LandingPage({ onGetStarted, onBack }: LandingPageProps) 
       return;
     }
 
+    // First, parse locally for immediate display
     Papa.parse(file, {
-      complete: (results) => {
+      complete: async (results) => {
         if (results.data && results.data.length > 0) {
           const headers = results.data[0] as string[];
           const dataRows = results.data.slice(1).filter((row: any) => 
@@ -69,8 +71,24 @@ export default function LandingPage({ onGetStarted, onBack }: LandingPageProps) 
             return;
           }
 
-          toast.success(`Successfully loaded ${dataRows.length} rows`);
-          onGetStarted(dataRows, headers, file.name);
+          // Try to upload to backend for AI features
+          let tableName: string | undefined;
+          try {
+            toast.info('Uploading to AI backend...');
+            const uploadResult = await tableAPI.uploadCSV(file);
+            if (uploadResult.success && uploadResult.data) {
+              tableName = uploadResult.data.table_name;
+              toast.success(`AI features enabled! Loaded ${dataRows.length} rows`);
+            } else {
+              // Backend upload failed, but we can still work locally
+              toast.success(`Loaded ${dataRows.length} rows (local mode)`);
+            }
+          } catch (error) {
+            // Backend unavailable, continue in local-only mode
+            toast.success(`Loaded ${dataRows.length} rows (local mode)`);
+          }
+
+          onGetStarted(dataRows, headers, file.name, tableName);
         } else {
           toast.error('Failed to parse CSV file');
         }
@@ -87,17 +105,32 @@ export default function LandingPage({ onGetStarted, onBack }: LandingPageProps) 
     try {
       const response = await fetch('/sample-data.csv');
       const csvText = await response.text();
+      const blob = new Blob([csvText], { type: 'text/csv' });
+      const file = new File([blob], 'sample-data.csv', { type: 'text/csv' });
       
       Papa.parse(csvText, {
-        complete: (results) => {
+        complete: async (results) => {
           if (results.data && results.data.length > 0) {
             const headers = results.data[0] as string[];
             const dataRows = results.data.slice(1).filter((row: any) => 
               row.some((cell: any) => cell !== null && cell !== undefined && cell !== '')
             );
             
-            toast.success(`Loaded sample dataset with ${dataRows.length} rows`);
-            onGetStarted(dataRows, headers, 'sample-data.csv');
+            // Try to upload to backend for AI features
+            let tableName: string | undefined;
+            try {
+              const uploadResult = await tableAPI.uploadCSV(file);
+              if (uploadResult.success && uploadResult.data) {
+                tableName = uploadResult.data.table_name;
+                toast.success(`AI features enabled! Loaded sample dataset with ${dataRows.length} rows`);
+              } else {
+                toast.success(`Loaded sample dataset with ${dataRows.length} rows`);
+              }
+            } catch (error) {
+              toast.success(`Loaded sample dataset with ${dataRows.length} rows`);
+            }
+            
+            onGetStarted(dataRows, headers, 'sample-data.csv', tableName);
           }
         },
         error: (error) => {

@@ -12,6 +12,7 @@ import { HelpTooltip, helpTexts } from './HelpTooltip';
 interface DataManipulationProps {
   data: any[];
   headers: string[];
+  tableName?: string; // Optional backend table name for enhanced features
   onDataChange: (newData: any[]) => void;
 }
 

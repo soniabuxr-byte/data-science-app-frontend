@@ -9,9 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 interface DataExplorerProps {
   data: any[];
   headers: string[];
+  tableName?: string; // Optional backend table name for enhanced features
 }
 
-export default function DataExplorer({ data, headers }: DataExplorerProps) {
+export default function DataExplorer({ data, headers, tableName }: DataExplorerProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);

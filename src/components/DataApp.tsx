@@ -1,14 +1,16 @@
 import { useState, useRef } from 'react';
-import { Database, Edit3, PlusCircle, BarChart3, ArrowLeft, FileSpreadsheet, Upload, Download, Table2 } from 'lucide-react';
+import { Database, Edit3, PlusCircle, BarChart3, ArrowLeft, FileSpreadsheet, Upload, Download, Table2, Sparkles } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Button } from './ui/button';
 import DataExplorer from './DataExplorer';
 import DataManipulation from './DataManipulation';
 import DataAugmentation from './DataAugmentation';
 import DataVisualization from './DataVisualization';
+import AIQueryPanel from './AIQueryPanel';
 import { HelpTooltip } from './HelpTooltip';
 import Papa from 'papaparse';
 import { toast } from 'sonner';
+import { tableAPI } from '../services/api';
 
 // Help tooltip content for each tab
 const helpContent = {
@@ -51,6 +53,16 @@ const helpContent = {
       'Group data by categories for comparison',
       'Customize colors and labels'
     ]
+  },
+  ai: {
+    title: 'AI Assistant',
+    description: 'Ask questions about your data in plain English.',
+    howTo: [
+      'Ask "What is the average sales by region?"',
+      'Ask "Show me the top 10 products by revenue"',
+      'Ask "Which customers have the highest orders?"',
+      'Get instant insights and visualizations'
+    ]
   }
 };
 
@@ -66,9 +78,10 @@ export interface DataAppProps {
   initialData?: any[];
   initialHeaders?: string[];
   initialFileName?: string;
+  initialTableName?: string; // Backend table name for AI features
 }
 
-export default function DataApp({ onSignOut, onGoHome, onBack, initialData, initialHeaders, initialFileName }: DataAppProps) {
+export default function DataApp({ onSignOut, onGoHome, onBack, initialData, initialHeaders, initialFileName, initialTableName }: DataAppProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [data, setData] = useState<ParsedData | null>(
     initialData && initialHeaders 
@@ -82,10 +95,11 @@ export default function DataApp({ onSignOut, onGoHome, onBack, initialData, init
       : null
   );
   const [fileName, setFileName] = useState<string>(initialFileName || '');
+  const [tableName, setTableName] = useState<string | undefined>(initialTableName);
   const [activeTab, setActiveTab] = useState<string>(initialData ? 'explore' : 'explore');
 
   // Handle new file upload
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -95,7 +109,7 @@ export default function DataApp({ onSignOut, onGoHome, onBack, initialData, init
     }
 
     Papa.parse(file, {
-      complete: (results) => {
+      complete: async (results) => {
         if (results.data && results.data.length > 0) {
           const headers = results.data[0] as string[];
           const dataRows = results.data.slice(1).filter((row: any) => 
@@ -115,10 +129,25 @@ export default function DataApp({ onSignOut, onGoHome, onBack, initialData, init
             return obj;
           });
 
+          // Try to upload to backend for AI features
+          let newTableName: string | undefined;
+          try {
+            toast.info('Uploading to AI backend...');
+            const uploadResult = await tableAPI.uploadCSV(file);
+            if (uploadResult.success && uploadResult.data) {
+              newTableName = uploadResult.data.table_name;
+              toast.success(`AI features enabled! Loaded ${processedRows.length} rows from ${file.name}`);
+            } else {
+              toast.success(`Loaded ${processedRows.length} rows from ${file.name}`);
+            }
+          } catch (error) {
+            toast.success(`Loaded ${processedRows.length} rows from ${file.name}`);
+          }
+
           setData({ headers, rows: processedRows });
           setFileName(file.name);
+          setTableName(newTableName);
           setActiveTab('explore');
-          toast.success(`Loaded ${processedRows.length} rows from ${file.name}`);
         }
       },
       error: (error) => {
@@ -232,7 +261,7 @@ export default function DataApp({ onSignOut, onGoHome, onBack, initialData, init
       {/* Main Content */}
       <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
-          <TabsList className="grid w-full grid-cols-4 h-auto p-1">
+          <TabsList className="grid w-full grid-cols-5 h-auto p-1">
             <TabsTrigger value="explore" disabled={!data} className="gap-1 flex-col py-2 px-1 sm:px-3 sm:py-3 sm:flex-row sm:gap-2">
               <Database className="size-4 sm:size-5" />
               <div className="flex items-center">
@@ -261,10 +290,17 @@ export default function DataApp({ onSignOut, onGoHome, onBack, initialData, init
                 <span className="hidden sm:inline-flex"><HelpTooltip content={helpContent.visualize} variant="prominent" /></span>
               </div>
             </TabsTrigger>
+            <TabsTrigger value="ai" disabled={!data || !tableName} className="gap-1 flex-col py-2 px-1 sm:px-3 sm:py-3 sm:flex-row sm:gap-2">
+              <Sparkles className="size-4 sm:size-5" />
+              <div className="flex items-center">
+                <span className="text-[10px] sm:text-sm">AI</span>
+                <span className="hidden sm:inline-flex"><HelpTooltip content={helpContent.ai} variant="prominent" /></span>
+              </div>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="explore">
-            {data && <DataExplorer data={data.rows} headers={data.headers} />}
+            {data && <DataExplorer data={data.rows} headers={data.headers} tableName={tableName} />}
           </TabsContent>
 
           <TabsContent value="manipulate">
@@ -272,6 +308,7 @@ export default function DataApp({ onSignOut, onGoHome, onBack, initialData, init
               <DataManipulation
                 data={data.rows}
                 headers={data.headers}
+                tableName={tableName}
                 onDataChange={(newRows) => setData({ ...data, rows: newRows })}
               />
             )}
@@ -282,13 +319,25 @@ export default function DataApp({ onSignOut, onGoHome, onBack, initialData, init
               <DataAugmentation
                 data={data.rows}
                 headers={data.headers}
+                tableName={tableName}
                 onDataChange={(newRows, newHeaders) => setData({ headers: newHeaders, rows: newRows })}
               />
             )}
           </TabsContent>
 
           <TabsContent value="visualize">
-            {data && <DataVisualization data={data.rows} headers={data.headers} />}
+            {data && <DataVisualization data={data.rows} headers={data.headers} tableName={tableName} />}
+          </TabsContent>
+
+          <TabsContent value="ai">
+            {data && tableName && (
+              <AIQueryPanel
+                data={data.rows}
+                headers={data.headers}
+                tableName={tableName}
+                onDataChange={(newRows) => setData({ ...data, rows: newRows })}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </div>

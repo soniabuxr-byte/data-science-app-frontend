@@ -13,6 +13,7 @@ import { HelpTooltip, helpTexts } from './HelpTooltip';
 interface DataAugmentationProps {
   data: any[];
   headers: string[];
+  tableName?: string; // Optional backend table name for AI-powered augmentation
   onDataChange: (newData: any[], newHeaders: string[]) => void;
 }
 

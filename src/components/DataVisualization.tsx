@@ -26,11 +26,12 @@ import {
 interface DataVisualizationProps {
   data: any[];
   headers: string[];
+  tableName?: string; // Optional backend table name for AI-powered insights
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF6B9D'];
 
-export default function DataVisualization({ data, headers }: DataVisualizationProps) {
+export default function DataVisualization({ data, headers, tableName }: DataVisualizationProps) {
   const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter'>('bar');
   const [xAxis, setXAxis] = useState(headers[0] || '');
   const [yAxis, setYAxis] = useState(headers[1] || '');
