@@ -36,13 +36,12 @@ export default function SignInScreen({ onSignIn }: SignInScreenProps) {
         toast.success('Welcome back!');
         setTimeout(() => onSignIn(), 500);
       } else {
-        // If backend fails, allow demo access
-        toast.info('Entering demo mode - full features available!');
-        setTimeout(() => onSignIn(), 500);
+        // Login failed - show the error
+        toast.error(response.error || 'Invalid email or password');
       }
     } catch (error) {
-      // Backend unavailable - continue in demo mode
-      toast.info('Entering demo mode - explore all features!');
+      // Backend unavailable - continue in demo mode (graceful degradation)
+      toast.info('Connecting offline - all features available!');
       setTimeout(() => onSignIn(), 500);
     } finally {
       setIsLoading(false);
@@ -74,13 +73,12 @@ export default function SignInScreen({ onSignIn }: SignInScreenProps) {
         toast.success('Account created! Welcome!');
         setTimeout(() => onSignIn(), 500);
       } else {
-        // If backend fails, allow demo access
-        toast.info('Entering demo mode - full features available!');
-        setTimeout(() => onSignIn(), 500);
+        // Sign up failed - show the error
+        toast.error(response.error || 'Could not create account. Please try again.');
       }
     } catch (error) {
-      // Backend unavailable - continue in demo mode
-      toast.info('Entering demo mode - explore all features!');
+      // Backend unavailable - continue in demo mode (graceful degradation)
+      toast.info('Connecting offline - all features available!');
       setTimeout(() => onSignIn(), 500);
     } finally {
       setIsLoading(false);
@@ -92,16 +90,16 @@ export default function SignInScreen({ onSignIn }: SignInScreenProps) {
     try {
       const response = await authAPI.guestAccess();
       if (response.success) {
-        toast.success('Welcome! You can upload your own CSV or try the sample data.');
+        toast.success('Welcome! Upload a CSV or try the sample data.');
         setTimeout(() => onSignIn(), 500);
       } else {
-        // Backend failed but let user continue in demo mode
+        // Backend returned error but let user continue
         toast.success('Welcome! Upload a CSV or try the sample data.');
         setTimeout(() => onSignIn(), 500);
       }
     } catch (error) {
-      // Backend unavailable - still allow guest access in demo mode
-      toast.success('Welcome to demo mode! Upload a CSV or try the sample data.');
+      // Backend unavailable - still allow guest access
+      toast.success('Welcome! Upload a CSV or try the sample data.');
       setTimeout(() => onSignIn(), 500);
     } finally {
       setIsLoading(false);

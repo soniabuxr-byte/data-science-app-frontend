@@ -195,11 +195,11 @@ export interface TableStatistics {
 }
 
 export const tableAPI = {
-  // Upload a CSV file to the backend
+  // Upload a CSV file to the backend (demo endpoint - no auth required)
   uploadCSV: async (file: File): Promise<ApiResponse<UploadResponse>> => {
     const formData = new FormData();
     formData.append('file', file);
-    return fetchAPIMultipart<UploadResponse>('/upload-csv/', formData);
+    return fetchAPIMultipart<UploadResponse>('/demo-upload/', formData);
   },
 
   // List all tables
@@ -416,10 +416,16 @@ export interface NLQueryResponse {
 
 export const aiAPI = {
   // Process natural language query about data
+  // Uses demo endpoint for demo tables (no auth required), authenticated endpoint otherwise
   query: async (tableName: string, query: string): Promise<ApiResponse<NLQueryResponse>> => {
-    return fetchAPI<NLQueryResponse>(`/analysis/${tableName}/query`, {
+    // Use demo endpoint for demo tables (created by demo-upload)
+    const endpoint = tableName.startsWith('demo_') 
+      ? `/demo-query/${tableName}`
+      : `/analysis/${tableName}/query`;
+    
+    return fetchAPI<NLQueryResponse>(endpoint, {
       method: 'POST',
-      body: JSON.stringify({ query }),
+      body: JSON.stringify({ question: query }),
     });
   },
 };
