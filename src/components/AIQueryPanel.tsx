@@ -44,6 +44,51 @@ export default function AIQueryPanel({ data, headers, tableName, onDataChange }:
   const chatEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
+  const currencyFmt = useRef(
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 })
+  );
+  const intFmt = useRef(new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }));
+  const numFmt = useRef(new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }));
+  const pFmt = useRef(new Intl.NumberFormat('en-US', { maximumFractionDigits: 6 }));
+
+  const isCurrencyColumn = (col: string) => /sales|profit|revenue|amount|price|cost|usd|\$/i.test(col);
+  const isCountLike = (keyOrCol: string) => /count|qty|quantity|units/i.test(keyOrCol);
+
+  const toNumber = (v: any) => {
+    if (v === null || v === undefined) return NaN;
+    const s = String(v).trim();
+    if (!s) return NaN;
+    const cleaned = s.replace(/[$,]/g, '');
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : NaN;
+  };
+
+  const formatStatValue = (column: string, statKey: string, value: any) => {
+    const n = typeof value === 'number' ? value : toNumber(value);
+
+    // p-values are always plain numbers between 0 and 1
+    if (statKey === 'p_value') {
+      if (!Number.isFinite(n)) return String(value);
+      return pFmt.current.format(n);
+    }
+
+    // Counts are always integers
+    if (statKey === 'count' || statKey === 'unique' || statKey.endsWith('_count') || isCountLike(statKey)) {
+      if (!Number.isFinite(n)) return String(value);
+      return intFmt.current.format(n);
+    }
+
+    // Currency formatting for money-like columns
+    if (isCurrencyColumn(column)) {
+      if (!Number.isFinite(n)) return String(value);
+      return currencyFmt.current.format(n);
+    }
+
+    // Default numeric formatting
+    if (Number.isFinite(n)) return numFmt.current.format(n);
+    return String(value);
+  };
+
   // Generate smart suggested questions based on data
   const suggestedQuestions = generateSuggestedQuestions(data, headers);
 
@@ -212,7 +257,7 @@ export default function AIQueryPanel({ data, headers, tableName, onDataChange }:
 
     // Local analysis fallback
     const values = data.map(row => row[column]);
-    const numericValues = values.map(v => parseFloat(v)).filter(v => !isNaN(v));
+    const numericValues = values.map(v => toNumber(v)).filter(v => Number.isFinite(v));
     const isNumeric = numericValues.length > values.length * 0.5;
     
     const analysis: any = {
@@ -226,18 +271,44 @@ export default function AIQueryPanel({ data, headers, tableName, onDataChange }:
       const sum = numericValues.reduce((a, b) => a + b, 0);
       const mean = sum / numericValues.length;
       const sorted = [...numericValues].sort((a, b) => a - b);
+      const n = numericValues.length;
+
+      // Sample standard deviation
+      let stdDev = 0;
+      if (n > 1) {
+        const variance = numericValues.reduce((acc, v) => acc + Math.pow(v - mean, 2), 0) / (n - 1);
+        stdDev = Math.sqrt(variance);
+      }
+
+      // Jarque–Bera normality test p-value (approx; JB ~ Chi^2(df=2))
+      let pValue: number | null = null;
+      if (n >= 3 && stdDev > 0) {
+        const m3 = numericValues.reduce((acc, v) => acc + Math.pow(v - mean, 3), 0) / n;
+        const m4 = numericValues.reduce((acc, v) => acc + Math.pow(v - mean, 4), 0) / n;
+        const s = m3 / Math.pow(stdDev, 3); // skewness
+        const k = m4 / Math.pow(stdDev, 4); // kurtosis
+        const jb = (n / 6) * (Math.pow(s, 2) + Math.pow(k - 3, 2) / 4);
+        pValue = Math.exp(-jb / 2);
+      }
       
       analysis.statistics = {
-        count: numericValues.length,
-        mean: mean.toFixed(2),
-        min: Math.min(...numericValues).toFixed(2),
-        max: Math.max(...numericValues).toFixed(2),
-        sum: sum.toFixed(2),
-        median: sorted[Math.floor(sorted.length / 2)].toFixed(2)
+        count: n,
+        mean,
+        std_dev: stdDev,
+        min: Math.min(...numericValues),
+        max: Math.max(...numericValues),
+        sum,
+        median: sorted[Math.floor(sorted.length / 2)],
+        ...(pValue !== null ? { p_value: pValue } : {}),
       };
       analysis.insights = [
-        `Range: ${(Math.max(...numericValues) - Math.min(...numericValues)).toFixed(2)}`,
-        numericValues.length < values.length ? `${values.length - numericValues.length} non-numeric values found` : 'All values are numeric'
+        `Range: ${formatStatValue(column, 'range', Math.max(...numericValues) - Math.min(...numericValues))}`,
+        numericValues.length < values.length ? `${values.length - numericValues.length} non-numeric values found` : 'All values are numeric',
+        ...(pValue !== null
+          ? [
+              `Normality test p-value: ${pFmt.current.format(pValue)} (${pValue < 0.05 ? 'likely not normal' : 'no strong evidence against normality'})`,
+            ]
+          : []),
       ];
     } else {
       const uniqueValues = new Set(values);
@@ -565,7 +636,7 @@ export default function AIQueryPanel({ data, headers, tableName, onDataChange }:
                     <div key={key} className="flex justify-between text-sm">
                       <span className="text-slate-600 capitalize">{key.replace(/_/g, ' ')}</span>
                       <span className="font-medium">
-                        {typeof value === 'number' ? value.toLocaleString() : String(value)}
+                        {formatStatValue(columnAnalysis.column, key, value)}
                       </span>
                     </div>
                   ))}
