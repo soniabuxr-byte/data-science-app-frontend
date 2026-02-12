@@ -116,8 +116,13 @@ export default function DataManipulation({ data, headers, onDataChange }: DataMa
     const link = document.createElement('a');
     link.href = url;
     link.download = `manipulated_data_${Date.now()}.csv`;
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
+    // Download is async in some browsers; revoke after it starts.
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      link.remove();
+    }, 1000);
     toast.success('Data exported successfully');
   };
 

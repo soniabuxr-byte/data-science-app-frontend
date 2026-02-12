@@ -25,6 +25,14 @@ interface ChatMessage {
 }
 
 export default function AIQueryPanel({ data, headers, tableName, onDataChange }: AIQueryPanelProps) {
+  const makeMessageId = () => {
+    // Prefer strong unique IDs for React keys.
+    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+      return crypto.randomUUID();
+    }
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  };
+
   const [query, setQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -106,7 +114,7 @@ export default function AIQueryPanel({ data, headers, tableName, onDataChange }:
 
     // Add user message to chat
     const userMessage: ChatMessage = {
-      id: Date.now().toString(),
+      id: makeMessageId(),
       role: 'user',
       content: questionToAsk,
       timestamp: new Date(),
@@ -120,7 +128,7 @@ export default function AIQueryPanel({ data, headers, tableName, onDataChange }:
       // Provide helpful local analysis instead
       const localAnswer = generateLocalAnswer(questionToAsk, data, headers);
       const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: makeMessageId(),
         role: 'assistant',
         content: localAnswer,
         timestamp: new Date(),
@@ -136,7 +144,7 @@ export default function AIQueryPanel({ data, headers, tableName, onDataChange }:
       
       if (response.success && response.data) {
         const assistantMessage: ChatMessage = {
-          id: (Date.now() + 1).toString(),
+          id: makeMessageId(),
           role: 'assistant',
           content: response.data.answer,
           timestamp: new Date(),
@@ -147,7 +155,7 @@ export default function AIQueryPanel({ data, headers, tableName, onDataChange }:
         setChatHistory(prev => [...prev, assistantMessage]);
       } else {
         const errorMessage: ChatMessage = {
-          id: (Date.now() + 1).toString(),
+          id: makeMessageId(),
           role: 'assistant',
           content: response.error || 'Sorry, I couldn\'t process that question. Please try rephrasing it.',
           timestamp: new Date(),
@@ -158,7 +166,7 @@ export default function AIQueryPanel({ data, headers, tableName, onDataChange }:
       // Fall back to local analysis
       const localAnswer = generateLocalAnswer(questionToAsk, data, headers);
       const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
+        id: makeMessageId(),
         role: 'assistant',
         content: localAnswer,
         timestamp: new Date(),

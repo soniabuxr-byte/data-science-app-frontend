@@ -168,8 +168,13 @@ export default function DataApp({ onSignOut, onGoHome, onBack, initialData, init
     const link = document.createElement('a');
     link.href = url;
     link.download = fileName ? `modified_${fileName}` : `export_${Date.now()}.csv`;
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
+    // Download is async in some browsers; revoke after it starts.
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+      link.remove();
+    }, 1000);
     toast.success('Data exported successfully');
   };
 
