@@ -30,11 +30,53 @@ interface DataVisualizationProps {
 }
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF6B9D'];
+const TOP_N = 12;
 
 export default function DataVisualization({ data, headers, tableName }: DataVisualizationProps) {
   const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter'>('bar');
   const [xAxis, setXAxis] = useState(headers[0] || '');
   const [yAxis, setYAxis] = useState(headers[1] || '');
+
+  const currencyFmt = useMemo(
+    () =>
+      new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        maximumFractionDigits: 2,
+      }),
+    []
+  );
+  const intFmt = useMemo(() => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }), []);
+  const numFmt = useMemo(() => new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }), []);
+
+  const isCurrencyColumn = (col: string) => /sales|profit|revenue|amount|price|cost|usd|\$/i.test(col);
+  const isQuantityColumn = (col: string) => /qty|quantity|count|units/i.test(col);
+
+  const toNumber = (v: any) => {
+    if (v === null || v === undefined) return NaN;
+    const s = String(v).trim();
+    if (!s) return NaN;
+    // Supports "$1,234.56", "1,234", and plain numbers.
+    const cleaned = s.replace(/[$,]/g, '');
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : NaN;
+  };
+
+  const formatValue = (col: string, value: number) => {
+    if (!Number.isFinite(value)) return '';
+    if (isCurrencyColumn(col)) return currencyFmt.format(value);
+    if (isQuantityColumn(col)) return intFmt.format(value);
+    return numFmt.format(value);
+  };
+
+  const getSortKey = (v: any) => {
+    const s = (v ?? '').toString();
+    const asDate = Date.parse(s);
+    if (!Number.isNaN(asDate)) return { kind: 'date' as const, n: asDate };
+    const asNum = toNumber(v);
+    if (Number.isFinite(asNum)) return { kind: 'num' as const, n: asNum };
+    return { kind: 'str' as const, s: s.toLowerCase() };
+  };
 
   // Get numeric and non-numeric columns
   const { numericColumns, categoricalColumns } = useMemo(() => {
@@ -42,10 +84,7 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
     const categorical: string[] = [];
 
     headers.forEach((header) => {
-      const hasNumeric = data.some((row) => {
-        const value = row[header];
-        return !isNaN(parseFloat(value)) && isFinite(value);
-      });
+      const hasNumeric = data.some((row) => Number.isFinite(toNumber(row?.[header])));
 
       if (hasNumeric) {
         numeric.push(header);
@@ -61,27 +100,55 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
   const chartData = useMemo(() => {
     if (!xAxis || !yAxis) return [];
 
-    // For pie chart, aggregate data
-    if (chartType === 'pie') {
-      const aggregated = new Map<string, number>();
+    // Aggregate for bar/line/pie (default to SUM)
+    if (chartType === 'pie' || chartType === 'bar' || chartType === 'line') {
+      const aggregated = new Map<string, { sum: number; count: number }>();
 
       data.forEach((row) => {
-        const key = row[xAxis]?.toString() || 'Unknown';
-        const value = parseFloat(row[yAxis]) || 0;
-        aggregated.set(key, (aggregated.get(key) || 0) + value);
+        const key = row?.[xAxis]?.toString() || 'Unknown';
+        const value = toNumber(row?.[yAxis]);
+        const cur = aggregated.get(key) || { sum: 0, count: 0 };
+        if (Number.isFinite(value)) {
+          cur.sum += value;
+          cur.count += 1;
+        }
+        aggregated.set(key, cur);
       });
 
-      return Array.from(aggregated.entries())
-        .map(([name, value]) => ({ name, value }))
-        .slice(0, 10); // Limit to 10 slices for readability
+      let result = Array.from(aggregated.entries()).map(([name, stats]) => ({
+        name,
+        value: stats.sum,
+        _count: stats.count,
+      }));
+
+      // For bar/pie: show Top N by value
+      if (chartType === 'bar' || chartType === 'pie') {
+        result = result.sort((a, b) => b.value - a.value).slice(0, TOP_N);
+      }
+
+      // For line: sort by x-axis value if it looks like a date/number
+      if (chartType === 'line') {
+        result = result.sort((a, b) => {
+          const ka = getSortKey(a.name);
+          const kb = getSortKey(b.name);
+          if (ka.kind === 'date' && kb.kind === 'date') return ka.n - kb.n;
+          if (ka.kind === 'num' && kb.kind === 'num') return ka.n - kb.n;
+          if (ka.kind === 'str' && kb.kind === 'str') return ka.s.localeCompare(kb.s);
+          // Mixed types: keep stable-ish ordering
+          const order = { date: 0, num: 1, str: 2 } as const;
+          return order[ka.kind] - order[kb.kind];
+        });
+      }
+
+      return result;
     }
 
-    // For other charts
-    return data.slice(0, 50).map((row) => ({
-      name: row[xAxis]?.toString() || '',
-      value: parseFloat(row[yAxis]) || 0,
-      x: parseFloat(row[xAxis]) || 0,
-      y: parseFloat(row[yAxis]) || 0,
+    // Scatter: per-row points
+    return data.slice(0, 200).map((row) => ({
+      name: row?.[xAxis]?.toString() || '',
+      value: toNumber(row?.[yAxis]) || 0,
+      x: toNumber(row?.[xAxis]) || 0,
+      y: toNumber(row?.[yAxis]) || 0,
     }));
   }, [data, xAxis, yAxis, chartType]);
 
@@ -89,8 +156,8 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
   const statistics = useMemo(() => {
     return numericColumns.map((column) => {
       const values = data
-        .map((row) => parseFloat(row[column]))
-        .filter((val) => !isNaN(val));
+        .map((row) => toNumber(row?.[column]))
+        .filter((val) => Number.isFinite(val));
 
       if (values.length === 0) return { column, mean: 0, min: 0, max: 0, sum: 0 };
 
@@ -111,21 +178,21 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
           <Card key={stat.column}>
             <CardHeader className="pb-3">
               <CardDescription>{stat.column}</CardDescription>
-              <CardTitle>{stat.mean.toFixed(2)}</CardTitle>
+              <CardTitle>{formatValue(stat.column, stat.mean) || stat.mean.toFixed(2)}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-xs text-slate-600 space-y-1">
                 <div className="flex justify-between">
                   <span>Min:</span>
-                  <span>{stat.min.toFixed(2)}</span>
+                  <span>{formatValue(stat.column, stat.min) || stat.min.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Max:</span>
-                  <span>{stat.max.toFixed(2)}</span>
+                  <span>{formatValue(stat.column, stat.max) || stat.max.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Sum:</span>
-                  <span>{stat.sum.toFixed(2)}</span>
+                  <span>{formatValue(stat.column, stat.sum) || stat.sum.toFixed(2)}</span>
                 </div>
               </div>
             </CardContent>
@@ -217,8 +284,8 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
                   <BarChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-                    <YAxis tick={{ fontSize: 10 }} />
-                    <Tooltip />
+                    <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => formatValue(yAxis, Number(v))} />
+                    <Tooltip formatter={(v: any) => formatValue(yAxis, Number(v))} />
                     <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Bar dataKey="value" fill="#0088FE" name={yAxis} />
                   </BarChart>
@@ -232,8 +299,8 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
                   <LineChart data={chartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
-                    <YAxis tick={{ fontSize: 10 }} />
-                    <Tooltip />
+                    <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => formatValue(yAxis, Number(v))} />
+                    <Tooltip formatter={(v: any) => formatValue(yAxis, Number(v))} />
                     <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Line type="monotone" dataKey="value" stroke="#00C49F" name={yAxis} />
                   </LineChart>
@@ -259,7 +326,7 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip formatter={(v: any) => formatValue(yAxis, Number(v))} />
                     <Legend wrapperStyle={{ fontSize: '11px' }} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -272,8 +339,16 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
                   <ScatterChart>
                     <CartesianGrid />
                     <XAxis dataKey="x" name={xAxis} tick={{ fontSize: 10 }} />
-                    <YAxis dataKey="y" name={yAxis} tick={{ fontSize: 10 }} />
-                    <Tooltip cursor={{ strokeDasharray: '3 3' }} />
+                    <YAxis
+                      dataKey="y"
+                      name={yAxis}
+                      tick={{ fontSize: 10 }}
+                      tickFormatter={(v) => formatValue(yAxis, Number(v))}
+                    />
+                    <Tooltip
+                      cursor={{ strokeDasharray: '3 3' }}
+                      formatter={(v: any) => formatValue(yAxis, Number(v))}
+                    />
                     <Legend wrapperStyle={{ fontSize: '12px' }} />
                     <Scatter name={`${xAxis} vs ${yAxis}`} data={chartData} fill="#8884d8" />
                   </ScatterChart>
