@@ -8,6 +8,7 @@ import { HelpTooltip, helpTexts } from './HelpTooltip';
 import {
   BarChart,
   Bar,
+  LabelList,
   LineChart,
   Line,
   PieChart,
@@ -31,6 +32,7 @@ interface DataVisualizationProps {
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#FF6B9D'];
 const TOP_N = 12;
+const COUNT_KEY = '__count__';
 
 export default function DataVisualization({ data, headers, tableName }: DataVisualizationProps) {
   const [chartType, setChartType] = useState<'bar' | 'line' | 'pie' | 'scatter'>('bar');
@@ -49,8 +51,9 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
   const intFmt = useMemo(() => new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }), []);
   const numFmt = useMemo(() => new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }), []);
 
+  const isCountMeasure = (col: string) => col === COUNT_KEY;
   const isCurrencyColumn = (col: string) => /sales|profit|revenue|amount|price|cost|usd|\$/i.test(col);
-  const isQuantityColumn = (col: string) => /qty|quantity|count|units/i.test(col);
+  const isQuantityColumn = (col: string) => isCountMeasure(col) || /qty|quantity|count|units/i.test(col);
 
   const toNumber = (v: any) => {
     if (v === null || v === undefined) return NaN;
@@ -68,6 +71,8 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
     if (isQuantityColumn(col)) return intFmt.format(value);
     return numFmt.format(value);
   };
+
+  const yAxisLabel = isCountMeasure(yAxis) ? 'Count' : yAxis;
 
   const getSortKey = (v: any) => {
     const s = (v ?? '').toString();
@@ -106,18 +111,20 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
 
       data.forEach((row) => {
         const key = row?.[xAxis]?.toString() || 'Unknown';
-        const value = toNumber(row?.[yAxis]);
         const cur = aggregated.get(key) || { sum: 0, count: 0 };
-        if (Number.isFinite(value)) {
-          cur.sum += value;
-          cur.count += 1;
+        // Always track row count
+        cur.count += 1;
+        // Track sum only when yAxis is numeric measure
+        if (!isCountMeasure(yAxis)) {
+          const value = toNumber(row?.[yAxis]);
+          if (Number.isFinite(value)) cur.sum += value;
         }
         aggregated.set(key, cur);
       });
 
       let result = Array.from(aggregated.entries()).map(([name, stats]) => ({
         name,
-        value: stats.sum,
+        value: isCountMeasure(yAxis) ? stats.count : stats.sum,
         _count: stats.count,
       }));
 
@@ -146,9 +153,9 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
     // Scatter: per-row points
     return data.slice(0, 200).map((row) => ({
       name: row?.[xAxis]?.toString() || '',
-      value: toNumber(row?.[yAxis]) || 0,
+      value: isCountMeasure(yAxis) ? 1 : toNumber(row?.[yAxis]) || 0,
       x: toNumber(row?.[xAxis]) || 0,
-      y: toNumber(row?.[yAxis]) || 0,
+      y: isCountMeasure(yAxis) ? 1 : toNumber(row?.[yAxis]) || 0,
     }));
   }, [data, xAxis, yAxis, chartType]);
 
@@ -260,6 +267,7 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
                     <SelectValue placeholder="Select column" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={COUNT_KEY}>Count (rows)</SelectItem>
                     {numericColumns.length > 0 ? (
                       numericColumns.map((header) => (
                         <SelectItem key={header} value={header}>
@@ -285,9 +293,18 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
                     <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => formatValue(yAxis, Number(v))} />
-                    <Tooltip formatter={(v: any) => formatValue(yAxis, Number(v))} />
+                    <Tooltip
+                      formatter={(v: any) => formatValue(yAxis, Number(v))}
+                      labelFormatter={(label) => `${xAxis}: ${label}`}
+                    />
                     <Legend wrapperStyle={{ fontSize: '12px' }} />
-                    <Bar dataKey="value" fill="#0088FE" name={yAxis} />
+                    <Bar dataKey="value" fill="#0088FE" name={yAxisLabel}>
+                      <LabelList
+                        dataKey="value"
+                        position="top"
+                        formatter={(v: any) => formatValue(yAxis, Number(v))}
+                      />
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -300,9 +317,12 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" tick={{ fontSize: 10 }} interval="preserveStartEnd" />
                     <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => formatValue(yAxis, Number(v))} />
-                    <Tooltip formatter={(v: any) => formatValue(yAxis, Number(v))} />
+                    <Tooltip
+                      formatter={(v: any) => formatValue(yAxis, Number(v))}
+                      labelFormatter={(label) => `${xAxis}: ${label}`}
+                    />
                     <Legend wrapperStyle={{ fontSize: '12px' }} />
-                    <Line type="monotone" dataKey="value" stroke="#00C49F" name={yAxis} />
+                    <Line type="monotone" dataKey="value" stroke="#00C49F" name={yAxisLabel} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
@@ -317,7 +337,9 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                      label={({ name, value }) =>
+                        `${name}: ${formatValue(yAxis, Number(value)) || ''}`
+                      }
                       outerRadius="70%"
                       fill="#8884d8"
                       dataKey="value"
@@ -326,7 +348,10 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(v: any) => formatValue(yAxis, Number(v))} />
+                    <Tooltip
+                      formatter={(v: any) => formatValue(yAxis, Number(v))}
+                      labelFormatter={(label) => `${xAxis}: ${label}`}
+                    />
                     <Legend wrapperStyle={{ fontSize: '11px' }} />
                   </PieChart>
                 </ResponsiveContainer>
@@ -341,7 +366,7 @@ export default function DataVisualization({ data, headers, tableName }: DataVisu
                     <XAxis dataKey="x" name={xAxis} tick={{ fontSize: 10 }} />
                     <YAxis
                       dataKey="y"
-                      name={yAxis}
+                      name={yAxisLabel}
                       tick={{ fontSize: 10 }}
                       tickFormatter={(v) => formatValue(yAxis, Number(v))}
                     />
