@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, ListOrdered } from 'lucide-react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
@@ -103,6 +103,19 @@ export default function DataExplorer({ data, headers, tableName }: DataExplorerP
                   className="pl-10 w-full"
                 />
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-9"
+                onClick={() => {
+                  setRowsPerPage(10);
+                  setCurrentPage(1);
+                }}
+                title="Show top 10 rows"
+              >
+                <ListOrdered className="mr-2 size-4" />
+                Top 10
+              </Button>
             </div>
           </div>
         </CardHeader>

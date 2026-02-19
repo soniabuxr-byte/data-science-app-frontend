@@ -1,10 +1,11 @@
 import { useState } from 'react';
+import MarketingLanding from './components/MarketingLanding';
 import SignInScreen from './components/SignInScreen';
 import LandingPage from './components/LandingPage';
 import DataApp from './components/DataApp';
 import { Toaster } from './components/ui/sonner';
 
-type AppScreen = 'signin' | 'landing' | 'app';
+type AppScreen = 'marketing' | 'signin' | 'landing' | 'app';
 
 interface UploadedData {
   data: any[];
@@ -14,7 +15,7 @@ interface UploadedData {
 }
 
 export default function App() {
-  const [currentScreen, setCurrentScreen] = useState<AppScreen>('signin');
+  const [currentScreen, setCurrentScreen] = useState<AppScreen>('marketing');
   const [uploadedData, setUploadedData] = useState<UploadedData | null>(null);
 
   const handleGetStarted = (data: any[], headers: string[], fileName: string, tableName?: string) => {
@@ -24,6 +25,12 @@ export default function App() {
 
   return (
     <>
+      {currentScreen === 'marketing' && (
+        <MarketingLanding
+          onGetStarted={() => setCurrentScreen('signin')}
+          onTryNow={() => setCurrentScreen('landing')}
+        />
+      )}
       {currentScreen === 'signin' && (
         <SignInScreen onSignIn={() => setCurrentScreen('landing')} />
       )}
