@@ -1,6 +1,5 @@
-import { Upload, Edit3, BarChart3, ArrowRight, ArrowLeft, FileSpreadsheet, Globe, Loader2 } from 'lucide-react';
+import { Upload, Database, Edit3, PlusCircle, BarChart3, ArrowRight, ArrowLeft, FileSpreadsheet, Globe, Loader2, Sparkles } from 'lucide-react';
 import { Button } from './ui/button';
-import { Logos3 } from './ui/logos3';
 import { Input } from './ui/input';
 import { useRef, useState } from 'react';
 import Papa from 'papaparse';
@@ -338,9 +337,70 @@ export default function LandingPage({ onGetStarted, onBack }: LandingPageProps) 
             </p>
           </div>
 
-          {/* Data workflow — auto-scroll carousel */}
-          <div className="mb-8 sm:mb-12 overflow-hidden rounded-2xl bg-white shadow-2xl">
-            <Logos3 heading="Explore, transform & visualize your data" />
+          {/* Main Content Card */}
+          <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 lg:p-12 mb-8 sm:mb-12">
+            {/* Feature Steps */}
+            <div className="space-y-6 sm:space-y-8">
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white shadow-lg">
+                  <span className="text-xl sm:text-2xl">1</span>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Database className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                    <h3 className="text-lg sm:text-xl">Explore Data</h3>
+                  </div>
+                  <p className="text-slate-600 text-sm sm:text-base">
+                    View and browse your data in a clean, interactive table format with search and pagination
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white shadow-lg">
+                  <span className="text-xl sm:text-2xl">2</span>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Edit3 className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
+                    <h3 className="text-lg sm:text-xl">Manipulate Data</h3>
+                  </div>
+                  <p className="text-slate-600 text-sm sm:text-base">
+                    Filter rows, sort columns, and transform your dataset with powerful tools
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center text-white shadow-lg">
+                  <span className="text-xl sm:text-2xl">3</span>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <PlusCircle className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
+                    <h3 className="text-lg sm:text-xl">Augment Data</h3>
+                  </div>
+                  <p className="text-slate-600 text-sm sm:text-base">
+                    Create calculated columns, concatenate fields, and derive new insights
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center text-white shadow-lg">
+                  <span className="text-xl sm:text-2xl">4</span>
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
+                    <h3 className="text-lg sm:text-xl">Visualize Data</h3>
+                  </div>
+                  <p className="text-slate-600 text-sm sm:text-base">
+                    Generate beautiful charts and graphs to understand your data patterns
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Upload Your Data Card */}
