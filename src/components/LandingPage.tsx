@@ -330,7 +330,7 @@ export default function LandingPage({ onGetStarted, onBack }: LandingPageProps) 
           {/* Header */}
           <div className="text-center mb-12 sm:mb-16 lg:mb-20">
             <h1 className="text-[#1976d2] text-[32px] sm:text-[40px] lg:text-[48px] mb-4 sm:mb-6" style={{ fontFamily: "'Stick No Bills', sans-serif", lineHeight: '56px', letterSpacing: '0px' }}>
-              Data Science Apps
+              Data Science App
             </h1>
             <p className="text-slate-600 text-lg sm:text-xl lg:text-2xl max-w-2xl mx-auto">
               Analyze, Transform, Visualize — Visually

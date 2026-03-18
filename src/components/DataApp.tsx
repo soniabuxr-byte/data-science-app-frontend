@@ -272,7 +272,7 @@ export default function DataApp({ onSignOut, onGoHome, onBack, initialData, init
             {/* Center: Title */}
             <div className="flex-1 text-center">
               <h1 className="text-blue-600 text-[24px] sm:text-[32px] lg:text-[40px]" style={{ fontFamily: "'Stick No Bills', sans-serif", lineHeight: '1.2' }}>
-                Data Science Apps
+                Data Science App
               </h1>
             </div>
 

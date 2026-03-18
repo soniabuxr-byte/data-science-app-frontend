@@ -26,7 +26,7 @@ export default function IPhone16Pro() {
   return (
     <div className="relative size-full" data-name="iPhone 16 Pro - 1">
       <img alt="" className="absolute inset-0 max-w-none object-50%-50% object-cover opacity-[0.52] pointer-events-none size-full" src={imgIPhone16Pro1} />
-      <p className="absolute font-['Post_No_Bills_Colombo_ExtraBold:Regular',sans-serif] leading-[56.016px] left-[201px] not-italic text-[#f5f9fa] text-[40px] text-center text-nowrap top-[404px] translate-x-[-50%]">Data Science Apps</p>
+      <p className="absolute font-['Post_No_Bills_Colombo_ExtraBold:Regular',sans-serif] leading-[56.016px] left-[201px] not-italic text-[#f5f9fa] text-[40px] text-center text-nowrap top-[404px] translate-x-[-50%]">Data Science App</p>
       <Button />
       <Button1 />
       <div className="absolute bg-[#929292] h-[67px] left-[-45px] top-[21px] w-[211px]" />

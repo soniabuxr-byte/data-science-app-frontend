@@ -122,7 +122,7 @@ export default function SignInScreen({ onSignIn }: SignInScreenProps) {
         {/* Logo/Title */}
         <div className="text-center mb-8 sm:mb-12">
           <h1 className="text-white text-[32px] sm:text-[40px] lg:text-[48px] mb-3 sm:mb-4 drop-shadow-lg" style={{ fontFamily: "'Stick No Bills', sans-serif", fontWeight: 500, lineHeight: '56px', letterSpacing: '0px' }}>
-            Data Science Apps
+            Data Science App
           </h1>
           <p className="text-white/90 text-base sm:text-lg lg:text-xl drop-shadow-md">
             Analyze, Transform, Visualize — Visually

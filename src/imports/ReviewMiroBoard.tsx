@@ -3,7 +3,7 @@ import svgPaths from "./svg-wzl4efprf9";
 function MuiTypographyRoot() {
   return (
     <div className="h-[56.016px] relative shrink-0 w-full" data-name="MuiTypographyRoot">
-      <p className="absolute font-['Post_No_Bills_Colombo_Medium:Regular',sans-serif] leading-[56.016px] left-[193px] not-italic text-[#1976d2] text-[48px] text-center text-nowrap top-[0.5px] translate-x-[-50%]">Data Science Apps</p>
+      <p className="absolute font-['Post_No_Bills_Colombo_Medium:Regular',sans-serif] leading-[56.016px] left-[193px] not-italic text-[#1976d2] text-[48px] text-center text-nowrap top-[0.5px] translate-x-[-50%]">Data Science App</p>
     </div>
   );
 }
